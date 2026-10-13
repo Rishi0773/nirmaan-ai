@@ -385,24 +385,55 @@ html, body, [class*="css"] {
 }
 
 .msg-assistant {
-  background: rgba(255, 255, 255, 0.08);
-  color: #E2E8F0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top-left-radius: 2px;
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1 !important;
+  border-top-left-radius: 2px !important;
 }
 
-.msg-user {
-  background: linear-gradient(135deg, #0D9488 0%, #059669 100%);
-  color: #FFFFFF;
-  align-self: flex-end;
-  border-top-right-radius: 2px;
+div[data-testid="stChatMessage"] {
+  background-color: #F8FAFC !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 0.85rem !important;
+  margin-bottom: 0.65rem !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05) !important;
 }
 
-.assistant-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 0.75rem;
+div[data-testid="stChatMessageContent"] {
+  color: #0F172A !important;
+}
+
+div[data-testid="stChatMessageContent"] p,
+div[data-testid="stChatMessageContent"] span,
+div[data-testid="stChatMessageContent"] div,
+div[data-testid="stChatMessageContent"] li,
+div[data-testid="stChatMessageContent"] strong,
+div[data-testid="stChatMessageContent"] b {
+  color: #0F172A !important;
+}
+
+div[data-testid="stChatMessageContent"] code {
+  background-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 4px !important;
+  padding: 0.12rem 0.38rem !important;
+  font-weight: 700 !important;
+}
+
+div[data-testid="stChatMessage"]:has(div[data-testid="chatAvatarIcon-user"]) {
+  background: linear-gradient(135deg, #0D9488 0%, #059669 100%) !important;
+  border: none !important;
+}
+
+div[data-testid="stChatMessage"]:has(div[data-testid="chatAvatarIcon-user"]) div[data-testid="stChatMessageContent"] * {
+  color: #FFFFFF !important;
+}
+
+div[data-testid="stLatex"] .katex,
+div[data-testid="stLatex"] .katex * {
+  color: #0F172A !important;
 }
 
 .chip-btn {
@@ -498,85 +529,133 @@ html, body, [class*="css"] {
    5. Clean Table & Card Components (Fixing Raw HTML Render Bug)
    ========================================================================== */
 .clean-table-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-  overflow-x: auto;
-  margin-bottom: 1.5rem;
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 12px !important;
+  padding: 1.15rem !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+  overflow-x: auto !important;
+  margin-bottom: 1.5rem !important;
+  color: #0F172A !important;
 }
 
 .civic-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 0.88rem !important;
+  background: #FFFFFF !important;
 }
 
 .civic-table th {
-  padding: 0.75rem 0.85rem;
-  text-align: left;
-  font-weight: 700;
-  color: #475569;
-  border-bottom: 2px solid #E2E8F0;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  padding: 0.85rem 1rem !important;
+  text-align: left !important;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+  background-color: #F8FAFC !important;
+  border-bottom: 2px solid #CBD5E1 !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
 }
 
 .civic-table td {
-  padding: 0.75rem 0.85rem;
-  border-bottom: 1px solid #F1F5F9;
-  color: #1E293B;
-  vertical-align: middle;
+  padding: 0.85rem 1rem !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  vertical-align: middle !important;
+  background: #FFFFFF !important;
 }
 
-.civic-table tr:hover {
-  background-color: #F8FAFC;
+.civic-table td strong {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+.civic-table tr:hover td {
+  background-color: #F1F5F9 !important;
 }
 
 /* Badges */
 .badge {
-  display: inline-block;
-  padding: 0.22rem 0.65rem;
-  border-radius: 9999px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  display: inline-block !important;
+  padding: 0.28rem 0.65rem !important;
+  border-radius: 9999px !important;
+  font-size: 0.74rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
 }
 
 .badge-high {
-  background-color: #FEE2E2;
-  color: #DC2626;
-  border: 1px solid #FCA5A5;
+  background-color: #FEE2E2 !important;
+  color: #991B1B !important;
+  border: 1px solid #F87171 !important;
 }
 
 .badge-med {
-  background-color: #FEF3C7;
-  color: #D97706;
-  border: 1px solid #FCD34D;
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1px solid #FBBF24 !important;
 }
 
 .badge-low {
-  background-color: #E0F2FE;
-  color: #0284C7;
-  border: 1px solid #BAE6FD;
+  background-color: #E0F2FE !important;
+  color: #075985 !important;
+  border: 1px solid #7DD3FC !important;
 }
 
 .badge-cleared {
-  background-color: #DCFCE7;
-  color: #16A34A;
-  border: 1px solid #86EFAC;
+  background-color: #DCFCE7 !important;
+  color: #166534 !important;
+  border: 1px solid #86EFAC !important;
+}
+
+.badge-progress {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1px solid #FBBF24 !important;
+}
+
+.badge-verify {
+  background-color: #EDE9FE !important;
+  color: #5B21B6 !important;
+  border: 1px solid #C4B5FD !important;
+}
+
+.badge-assigned {
+  background-color: #E0F2FE !important;
+  color: #0369A1 !important;
+  border: 1px solid #7DD3FC !important;
+}
+
+.badge-blocked {
+  background-color: #FEE2E2 !important;
+  color: #991B1B !important;
+  border: 1px solid #F87171 !important;
+}
+
+.badge-reopened {
+  background-color: #FFEDD5 !important;
+  color: #9A3412 !important;
+  border: 1px solid #FDBA74 !important;
+}
+
+.badge-pending {
+  background-color: #F1F5F9 !important;
+  color: #334155 !important;
+  border: 1px solid #CBD5E1 !important;
 }
 
 .prio-pill {
-  font-weight: 800;
-  color: #0F172A;
-  background: #F1F5F9;
-  border: 1px solid #CBD5E1;
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
-  font-size: 0.92rem;
-  display: inline-block;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+  background: #F1F5F9 !important;
+  border: 1px solid #94A3B8 !important;
+  padding: 0.22rem 0.65rem !important;
+  border-radius: 8px !important;
+  font-size: 0.95rem !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
 }

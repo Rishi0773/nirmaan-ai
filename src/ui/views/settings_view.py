@@ -17,6 +17,11 @@ from src.auth.rbac import has_permission, get_current_user
 
 
 def render(repo: Repository):
+    if not has_permission("tune_weights"):
+        st.error("Access Restricted: Mathematical calibration and system settings are restricted to Administrators.")
+        st.info("Please switch to an Administrator profile via the Login / Role Switcher to access this console.")
+        return
+
     render_header(
         title="Settings & Mathematical Calibration",
         subtitle="Calibrate priority scoring weights, inspect model weights, and manage database state.",

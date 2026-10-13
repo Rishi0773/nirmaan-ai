@@ -10,7 +10,15 @@ from src.database.repository import Repository
 from src.ui.components import render_header
 
 
+from src.auth.rbac import has_permission
+
+
 def render(repo: Repository):
+    if not has_permission("view_audit_logs"):
+        st.error("Access Restricted: Immutable civic audit trails are restricted to Administrators.")
+        st.info("Please switch to an Administrator profile via the Login / Role Switcher to inspect the audit log.")
+        return
+
     render_header(
         title="Immutable Civic Audit Trail",
         subtitle="Chronological log of operational changes, priority overrides, and supervisory sign-offs.",

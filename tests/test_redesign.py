@@ -113,7 +113,39 @@ def test_badges_and_table_markup():
     assert "badge-low" in l_badge
     assert "LOW" in l_badge
 
-    # Status badge
+    m_badge = severity_badge("Medium")
+    assert "badge-med" in m_badge
+    assert "MEDIUM" in m_badge
+
+    # Status badges
     c_badge = status_badge("Cleared")
     assert "badge-cleared" in c_badge
     assert "CLEARED" in c_badge
+
+    vc_badge = status_badge("Verified Cleared")
+    assert "badge-cleared" in vc_badge
+    assert "VERIFIED CLEARED" in vc_badge
+
+    p_badge = status_badge("Pending")
+    assert "badge-pending" in p_badge
+    assert "PENDING" in p_badge
+
+    as_badge = status_badge("Assigned")
+    assert "badge-assigned" in as_badge
+    assert "ASSIGNED" in as_badge
+
+    uc_badge = status_badge("Under Cleanup")
+    assert "badge-progress" in uc_badge
+    assert "UNDER CLEANUP" in uc_badge
+
+    ver_badge = status_badge("Awaiting Verification")
+    assert "badge-verify" in ver_badge
+    assert "VERIFICATION" in ver_badge
+
+    blk_badge = status_badge("Blocked")
+    assert "badge-blocked" in blk_badge
+    assert "BLOCKED" in blk_badge
+
+    re_badge = status_badge("Reopened")
+    assert "badge-reopened" in re_badge
+    assert "REOPENED" in re_badge

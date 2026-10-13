@@ -1,4 +1,5 @@
 -- NIRMAAN AI Relational SQLite Schema
+-- Civic Decision-Support Platform for Garbage Hotspot Prioritization
 
 PRAGMA foreign_keys = ON;
 
@@ -25,14 +26,26 @@ CREATE TABLE IF NOT EXISTS reports (
     landmark TEXT,
     description TEXT,
     waste_category TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'Pending' CHECK(status IN ('Pending', 'Under Cleanup', 'Cleared', 'Reopened')),
+    status TEXT NOT NULL DEFAULT 'Pending' CHECK(status IN (
+        'Pending', 'Submitted', 'Under Review', 'Prioritized', 'Assigned',
+        'In Progress', 'Under Cleanup', 'Awaiting Verification', 'Cleared',
+        'Verified Closed', 'Blocked', 'Rejected', 'Duplicate', 'Reopened'
+    )),
     reporter_name TEXT DEFAULT 'Anonymous Citizen',
     reporter_contact TEXT,
+    citizen_id INTEGER,
+    duplicate_of_id INTEGER,
+    rejection_reason TEXT,
+    blocked_reason TEXT,
+    escalated INTEGER DEFAULT 0,
+    escalation_notes TEXT,
     is_simulated INTEGER DEFAULT 0,
     is_flagged INTEGER DEFAULT 0,
     flag_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(citizen_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY(duplicate_of_id) REFERENCES reports(id) ON DELETE SET NULL
 );
 
 -- 3. Report Image Records
@@ -121,16 +134,23 @@ CREATE TABLE IF NOT EXISTS cleanup_tasks (
     report_id INTEGER NOT NULL UNIQUE,
     assigned_team TEXT NOT NULL,
     supervisor_id INTEGER,
-    status TEXT NOT NULL DEFAULT 'Pending' CHECK(status IN ('Pending', 'Under Cleanup', 'Cleared', 'Reopened')),
+    worker_id INTEGER,
+    status TEXT NOT NULL DEFAULT 'Pending' CHECK(status IN (
+        'Pending', 'Assigned', 'In Progress', 'Under Cleanup', 'Blocked',
+        'Awaiting Verification', 'Cleared', 'Verified Closed', 'Reopened'
+    )),
     priority_level TEXT DEFAULT 'Normal',
     scheduled_at TIMESTAMP,
     started_at TIMESTAMP,
     completed_at TIMESTAMP,
     notes TEXT,
+    worker_notes TEXT,
+    blocked_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE,
-    FOREIGN KEY(supervisor_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY(supervisor_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY(worker_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- 10. Cleanup Verification Evidence
@@ -174,3 +194,36 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     ip_address TEXT DEFAULT '127.0.0.1',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 13. Report Status Change History (Audit & Timeline Tracking)
+CREATE TABLE IF NOT EXISTS report_status_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    old_status TEXT,
+    new_status TEXT NOT NULL,
+    changed_by_user_id INTEGER,
+    changed_by_name TEXT,
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE,
+    FOREIGN KEY(changed_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 14. Citizen Follow-up Notes (Add info without duplicate reports)
+CREATE TABLE IF NOT EXISTS report_followups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    user_id INTEGER,
+    user_name TEXT,
+    notes TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Indexes for performance & query speed
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
+CREATE INDEX IF NOT EXISTS idx_reports_ward ON reports(ward_name);
+CREATE INDEX IF NOT EXISTS idx_reports_uid ON reports(report_uid);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON cleanup_tasks(status);
+CREATE INDEX IF NOT EXISTS idx_status_history_report ON report_status_history(report_id);

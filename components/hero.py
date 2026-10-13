@@ -1,12 +1,13 @@
 """
 NIRMAAN AI - Full-Width Dominant Hero Section Component
 Integrates the assets/images/bengaluru_hero.jpg photograph as the dominant backdrop
-across the main viewport with a dark translucent navy gradient overlay and reference layout.
+across the main viewport with a dark translucent navy gradient overlay and glassmorphic styling.
 """
 
 import base64
 import logging
 from pathlib import Path
+import re
 import streamlit as st
 from src.config import HERO_IMAGE_PATH, BASE_DIR
 from src.database.repository import Repository
@@ -24,7 +25,8 @@ def get_hero_image_b64() -> tuple[str, str]:
         HERO_IMAGE_PATH,                              # assets/images/bengaluru_hero.jpg
         HERO_IMAGE_PATH.with_suffix(".png"),          # assets/images/bengaluru_hero.png
         HERO_IMAGE_PATH.with_suffix(".jpeg"),
-        BASE_DIR / "assets" / "images" / "bengaluru_hero.jpg"
+        BASE_DIR / "assets" / "images" / "bengaluru_hero.jpg",
+        BASE_DIR / "assets" / "images" / "bengaluru_hero.png"
     ]
     for p in candidates:
         if p.exists() and p.is_file():
@@ -45,13 +47,10 @@ def get_hero_background_style() -> str:
     mime, b64 = get_hero_image_b64()
     if b64:
         return (
-            f"background: linear-gradient(135deg, rgba(8, 17, 39, 0.80) 0%, rgba(13, 27, 62, 0.70) 50%, rgba(8, 17, 39, 0.84) 100%), "
+            f"background: linear-gradient(135deg, rgba(8, 17, 39, 0.82) 0%, rgba(13, 27, 62, 0.72) 50%, rgba(8, 17, 39, 0.86) 100%), "
             f"url('data:{mime};base64,{b64}') center center / cover no-repeat fixed;"
         )
     return "background: linear-gradient(135deg, #0A1128 0%, #0D1B3E 45%, #0F3854 85%, #052E2B 100%);"
-
-
-import textwrap
 
 
 def render_hero(repo: Repository):
@@ -59,35 +58,23 @@ def render_hero(repo: Repository):
     mime, b64 = get_hero_image_b64()
 
     if b64:
-        bg_css = f"""
+        bg_style = f"""
 .stApp, div[data-testid="stAppViewContainer"] {{
-    background: linear-gradient(135deg, rgba(8, 17, 39, 0.78) 0%, rgba(13, 27, 62, 0.68) 50%, rgba(8, 17, 39, 0.82) 100%),
-                url('data:{mime};base64,{b64}') center center / cover no-repeat fixed !important;
+    background: linear-gradient(135deg, rgba(8, 17, 39, 0.84) 0%, rgba(13, 27, 62, 0.74) 50%, rgba(8, 17, 39, 0.88) 100%), url('data:{mime};base64,{b64}') center center / cover no-repeat fixed !important;
     background-size: cover !important;
     background-position: center center !important;
     background-attachment: fixed !important;
 }}
 """
     else:
-        bg_css = """
+        bg_style = """
 .stApp, div[data-testid="stAppViewContainer"] {
     background: linear-gradient(135deg, #0A1128 0%, #0D1B3E 45%, #0F3854 85%, #052E2B 100%) fixed !important;
 }
 """
 
-    st.markdown(
-        textwrap.dedent(f"""<style>
-{bg_css}
-
-/* Ensure Streamlit wrappers are transparent to reveal the background photo */
-.main, .block-container, div[data-testid="stVerticalBlock"] {{
-    background: transparent !important;
-}}
-header[data-testid="stHeader"] {{
-    background: transparent !important;
-}}
-
-/* Hero Universal Search Form Glass Styling */
+    extra_hero_css = f"""
+{bg_style}
 div[data-testid="stForm"]:has(input[aria-label="HeroSearch"]) {{
     background: rgba(255, 255, 255, 0.12) !important;
     backdrop-filter: blur(16px) !important;
@@ -121,45 +108,12 @@ div[data-testid="stForm"]:has(input[aria-label="HeroSearch"]) button:hover {{
     background: rgba(255, 255, 255, 0.28) !important;
     border-color: rgba(255, 255, 255, 0.6) !important;
 }}
-
-/* Hero Primary & Secondary CTA Buttons */
-button[key="hero_btn_report"] {{
-    background: #2563EB !important;
-    color: #FFFFFF !important;
-    border: none !important;
-    font-weight: 700 !important;
-    font-size: 0.95rem !important;
-    padding: 0.65rem 1.25rem !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45) !important;
-    transition: all 0.2s ease !important;
-}}
-button[key="hero_btn_report"]:hover {{
-    background: #1D4ED8 !important;
-    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6) !important;
-    transform: translateY(-2px);
-}}
-
-button[key="hero_btn_map"] {{
-    background: rgba(255, 255, 255, 0.12) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.32) !important;
-    color: #FFFFFF !important;
-    font-weight: 600 !important;
-    font-size: 0.95rem !important;
-    padding: 0.65rem 1.25rem !important;
-    border-radius: 10px !important;
-    transition: all 0.2s ease !important;
-}}
-button[key="hero_btn_map"]:hover {{
-    background: rgba(255, 255, 255, 0.22) !important;
-    border-color: rgba(255, 255, 255, 0.55) !important;
-    transform: translateY(-2px);
-}}
-</style>"""),
-        unsafe_allow_html=True
-    )
+"""
+    clean_extra_css = re.sub(r'\n{2,}', '\n', extra_hero_css).strip()
+    if hasattr(st, "html"):
+        st.html(f"<style>\n{clean_extra_css}\n</style>")
+    else:
+        st.markdown(f"<style>\n{clean_extra_css}\n</style>", unsafe_allow_html=True)
 
     # Hero Content Grid (Left Content + Right Civic Assistant)
     col_left, col_right = st.columns([1.35, 1.0], gap="large")
@@ -176,7 +130,7 @@ button[key="hero_btn_map"]:hover {{
                 <span style="color: #10B981;">Starts Here.</span>
             </div>
             <div style="font-size: 1.05rem; line-height: 1.6; color: #E2E8F0; max-width: 580px; margin-bottom: 1.6rem; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">
-                Report waste hotspots, track cleanup progress, and help sanitation teams prioritize locations that need attention.
+                Report waste hotspots, track cleanup progress, and help sanitation teams prioritize locations that need urgent municipal attention.
             </div>
             """,
             unsafe_allow_html=True
@@ -188,7 +142,7 @@ button[key="hero_btn_map"]:hover {{
             with s_col1:
                 search_q = st.text_input(
                     "HeroSearch",
-                    placeholder="Search by report ID, ward, or locality...",
+                    placeholder="Search by report ID (REP-BLR-001), ward, or address...",
                     label_visibility="collapsed"
                 )
             with s_col2:
@@ -218,7 +172,7 @@ button[key="hero_btn_map"]:hover {{
         # Primary and Secondary CTA Buttons
         btn_c1, btn_c2 = st.columns(2)
         with btn_c1:
-            if st.button("Report a Garbage Hotspot", key="hero_btn_report", use_container_width=True):
+            if st.button("Report a Garbage Hotspot", key="hero_btn_report", use_container_width=True, type="primary"):
                 st.session_state["nav_page"] = "Report Garbage"
                 st.rerun()
         with btn_c2:
@@ -226,11 +180,11 @@ button[key="hero_btn_map"]:hover {{
                 st.session_state["nav_page"] = "Live Map"
                 st.rerun()
 
-        # Civic Assurance Note
+        # Transparency Notice distinguishing simulated data from actual municipal records
         st.markdown(
             """
             <div style="margin-top: 1.5rem; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; font-size: 0.8rem; color: #E2E8F0;">
-                <strong style="color: #2DD4BF;">Civic Decision-Support Protocol:</strong> Reports are evaluated in real time via YOLOv8 multi-class detection and DBSCAN recurrence clustering to optimize municipal collection dispatches.
+                <strong style="color: #2DD4BF;">Civic Decision-Support Protocol:</strong> Reports are evaluated in real time via YOLOv8 multi-class detection and DBSCAN recurrence clustering to optimize municipal collection dispatches. Demonstration records are clearly marked.
             </div>
             """,
             unsafe_allow_html=True
@@ -238,4 +192,3 @@ button[key="hero_btn_map"]:hover {{
 
     with col_right:
         render_civic_assistant(repo)
-

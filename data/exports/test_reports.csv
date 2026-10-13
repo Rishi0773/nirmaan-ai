@@ -1,0 +1,2 @@
+report_uid,ward_name,status,waste_category,severity_level,severity_score,priority_score,latitude,longitude,address,is_simulated,created_at
+REP-PDF-001,Koramangala,Pending,plastic,,,,12.9352,77.6245,100ft Road,1,2026-10-13 16:44:37

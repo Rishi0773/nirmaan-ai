@@ -4,7 +4,7 @@
 [![Streamlit 1.56](https://img.shields.io/badge/Streamlit-1.56-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-00FFFF.svg)](https://github.com/ultralytics/ultralytics)
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.13-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/)
-[![Tests](https://img.shields.io/badge/Tests-21%20Passed%20(100%25)-10B981.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-27%20Passed%20(100%25)-10B981.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > **Intelligent Municipal Decision-Support Platform & Academic Defense Prototype**  

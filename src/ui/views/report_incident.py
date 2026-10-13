@@ -108,9 +108,22 @@ def render(repo: Repository):
                 height=110
             )
 
-            reporter_name = st.text_input("Reporter Name (Optional)", value="Civic Citizen")
+            from src.auth.rbac import get_current_user
+            current_user = get_current_user()
+            default_rep_name = current_user.get("full_name", "Civic Citizen")
+            reporter_name = st.text_input("Reporter Name", value=default_rep_name)
 
         submitted = st.form_submit_button("Submit Incident & Run AI Triage", use_container_width=True, type="primary")
+
+    # Duplicate warning check for coordinates
+    nearby_dups = repo.find_duplicate_reports(lat, lon, waste_category=waste_cat, max_meters=60.0)
+    if nearby_dups:
+        dup = nearby_dups[0]
+        st.warning(
+            f"⚠️ **Duplicate Warning:** An active complaint `{dup['report_uid']}` ({dup['status']}) was logged "
+            f"**{dup['distance_meters']} meters away** at {dup.get('address')}. "
+            "If this refers to the same site, you can append a follow-up note in **Track Report** to prevent duplicate work."
+        )
 
     if submitted:
         # Validate coordinates against Bengaluru bounds
@@ -149,6 +162,9 @@ def render(repo: Repository):
             )
 
             # 3. Save to Database
+            from src.auth.rbac import get_current_user
+            current_user = get_current_user()
+
             rep_id = repo.create_report(
                 report_uid=report_uid,
                 latitude=lat,
@@ -158,7 +174,8 @@ def render(repo: Repository):
                 address=address,
                 description=description,
                 reporter_name=reporter_name,
-                is_simulated=0 if uploaded_file else 1
+                is_simulated=0 if uploaded_file else 1,
+                citizen_id=current_user.get("id")
             )
 
             repo.add_report_image(rep_id, "incident", str(image_path), det_results.get("annotated_path", ""))
@@ -200,31 +217,37 @@ def render(repo: Repository):
 
         # Display Live Inference Summary
         st.markdown("### AI Computer Vision Assessment Results")
-        res_col1, res_col2 = st.columns(2)
+        img_col1, img_col2 = st.columns(2)
+        with img_col1:
+            st.markdown("<strong>Original Uploaded Photograph</strong>", unsafe_allow_html=True)
+            st.image(str(image_path), caption="Source Street View", use_container_width=True)
+        with img_col2:
+            st.markdown("<strong>AI Annotated Detections & Saliency Mask</strong>", unsafe_allow_html=True)
+            annot_path = det_results.get("annotated_path", str(image_path))
+            st.image(annot_path, caption=f"{det_results['model_version']} (Inference: {det_results['inference_time_ms']} ms)", use_container_width=True)
 
-        with res_col1:
-            st.image(det_results.get("annotated_path", str(image_path)), caption=f"Annotated Detections ({det_results['model_version']})", use_container_width=True)
+        if det_results["total_objects"] == 0:
+            st.info("ℹ️ No discrete bounding boxes detected with confidence > 0.25. Evaluated via OpenCV surface saliency and ground coverage.")
 
-        with res_col2:
-            st.markdown(
-                f"""
-                <div class="neu-card">
-                    <div style="font-size: 0.82rem; color: #64748B; font-weight: 600;">ASSESSED SEVERITY</div>
-                    <div style="margin: 0.25rem 0 0.5rem 0;">{severity_badge_html(sev_results['severity_level'])}</div>
-                    <div style="font-size: 1.15rem; font-weight: 700; color: #0F172A;">
-                        Severity Score: {sev_results['severity_score']}/100
-                    </div>
-                    <p style="font-size: 0.85rem; color: #334155; margin-top: 0.5rem;">
-                        <strong>Rationale:</strong> {sev_results['factors']['grading_rationale']}
-                    </p>
-                    <hr style="border: 0; border-top: 1px solid #E2E8F0; margin: 0.75rem 0;"/>
-                    <div style="font-size: 0.82rem; color: #475569;">
-                        <div>• Detected Objects: <strong>{det_results['total_objects']} items</strong></div>
-                        <div>• Ground Coverage: <strong>{sev_results['coverage_ratio']}%</strong></div>
-                        <div>• Inference Time: <strong>{det_results['inference_time_ms']} ms</strong></div>
-                        <div>• Model Backend: <strong>{det_results['model_type']}</strong></div>
-                    </div>
+        st.markdown(
+            f"""
+            <div class="neu-card">
+                <div style="font-size: 0.82rem; color: #64748B; font-weight: 600;">ASSESSED SEVERITY</div>
+                <div style="margin: 0.25rem 0 0.5rem 0;">{severity_badge_html(sev_results['severity_level'])}</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: #0F172A;">
+                    Severity Score: {sev_results['severity_score']}/100
                 </div>
-                """,
-                unsafe_allow_html=True
-            )
+                <p style="font-size: 0.85rem; color: #334155; margin-top: 0.5rem;">
+                    <strong>Rationale:</strong> {sev_results['factors']['grading_rationale']}
+                </p>
+                <hr style="border: 0; border-top: 1px solid #E2E8F0; margin: 0.75rem 0;"/>
+                <div style="font-size: 0.82rem; color: #475569;">
+                    <div>• Detected Objects: <strong>{det_results['total_objects']} items</strong> ({', '.join([f'{k}: {v}' for k,v in det_results['detected_classes'].items()]) if det_results['detected_classes'] else 'None'})</div>
+                    <div>• Ground Coverage: <strong>{sev_results['coverage_ratio']}%</strong></div>
+                    <div>• Max Confidence: <strong>{det_results['max_confidence']:.2f}</strong></div>
+                    <div>• Model Backend: <strong>{det_results['model_type']}</strong></div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )

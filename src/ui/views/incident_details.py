@@ -1,10 +1,9 @@
 """
-NIRMAAN AI - Incident Details & History View
-Deep-dive into a specific garbage report: computer vision detections,
-severity grading factors, transparent priority score breakdown, and operational history.
+NIRMAAN AI - Incident Details & Timeline History View
+Deep-dive into a specific garbage report: computer vision telemetry,
+severity grading factors, priority score breakdown, lifecycle timeline, and follow-up observations.
 """
 
-import json
 from pathlib import Path
 import streamlit as st
 from src.database.repository import Repository
@@ -44,12 +43,12 @@ def render(repo: Repository):
     images = repo.get_report_images(rep_id)
 
     # 1. Ticket Header Summary Card
-    sim_badge = '<span class="badge badge-med">SIMULATED RECORD</span>' if report['is_simulated'] else '<span class="badge badge-low">FIELD OBSERVATION</span>'
+    sim_badge = '<span class="badge badge-med">SIMULATED DEMO RECORD</span>' if report['is_simulated'] else '<span class="badge badge-low">FIELD CIVIC OBSERVATION</span>'
 
     st.markdown(
         f"""
         <div class="neu-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
                     <h2 style="margin: 0; color: #0F172A; font-size: 1.35rem;">
                         Ticket: {report['report_uid']}
@@ -86,7 +85,7 @@ def render(repo: Repository):
         if incident_img and Path(incident_img["file_path"]).exists():
             st.image(incident_img["file_path"], use_container_width=True)
         else:
-            st.info("Original image file unavailable.")
+            st.info("Original image file logged.")
 
     with img_col2:
         st.markdown("<strong>YOLOv8 Bounding Boxes & Saliency Mask</strong>", unsafe_allow_html=True)
@@ -95,7 +94,7 @@ def render(repo: Repository):
         elif incident_img and Path(incident_img["file_path"]).exists():
             st.image(incident_img["file_path"], caption="Bounding box overlay", use_container_width=True)
         else:
-            st.info("Annotated image unavailable.")
+            st.info("Annotated detections logged.")
 
     # 3. Telemetry & Scoring Breakdown
     t_col1, t_col2 = st.columns(2)
@@ -113,8 +112,8 @@ def render(repo: Repository):
                 </div>
                 <div style="font-size: 0.85rem; color: #475569; margin-top: 0.5rem;">
                     <div>• Ground Coverage: <strong>{report.get('coverage_ratio', 0):.1f}%</strong></div>
-                    <div>• Detected Objects: <strong>{report.get('total_objects', 0)}</strong></div>
-                    <div>• Waste Category: <strong>{report['waste_category']}</strong></div>
+                    <div>• Detected Objects: <strong>{report.get('total_objects', 0)} items</strong></div>
+                    <div>• Waste Category: <strong>{report['waste_category'].replace('_', ' ').title()}</strong></div>
                     <div>• Model Version: <strong>{report.get('model_version', 'NIRMAAN-YOLOv8')}</strong></div>
                 </div>
             </div>
@@ -146,16 +145,57 @@ def render(repo: Repository):
             unsafe_allow_html=True
         )
 
-    # 4. Operational Actions (Role-gated)
+    # 4. Status Transition Lifecycle Timeline
+    st.markdown("### Status Lifecycle & Verification History")
+    history = repo.get_report_status_history(rep_id)
+
+    if history:
+        for idx, h in enumerate(history, 1):
+            st.markdown(
+                f"""
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #10B981; border-radius: 8px; padding: 0.6rem 0.9rem; margin-bottom: 0.45rem; font-size: 0.85rem; color: #1E293B;">
+                    <strong>Step {idx}:</strong> <code>{h.get('old_status') or 'Init'}</code> &rarr; <strong>{h['new_status']}</strong>
+                    <span style="color: #64748B; font-size: 0.8rem; margin-left: 0.5rem;">({h['created_at']} by {h.get('changed_by_name') or 'System'})</span>
+                    <div style="font-size: 0.8rem; color: #475569; margin-top: 0.2rem;">
+                        Notes: {h.get('reason') or 'Status transition recorded'}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+    else:
+        st.info("No transition records logged yet.")
+
+    # 5. Follow-ups & Citizen Notes
+    st.markdown("### Follow-up Observations")
+    followups = repo.get_report_followups(rep_id)
+    if followups:
+        for f in followups:
+            st.markdown(
+                f"""
+                <div style="background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; padding: 0.5rem 0.75rem; margin-bottom: 0.35rem; font-size: 0.82rem;">
+                    <strong>{f.get('user_name', 'Citizen')}</strong> ({f['created_at']}): {f['notes']}
+                </div>
+                """, unsafe_allow_html=True
+            )
+
+    user = get_current_user()
+    with st.expander("Add Follow-up Observation to this Ticket"):
+        new_f_note = st.text_input("Enter observation note", key="new_followup_dossier")
+        if st.button("Append Follow-up Note", type="primary") and new_f_note.strip():
+            repo.add_report_followup(rep_id, user["id"], user["full_name"], new_f_note.strip())
+            st.success("Follow-up observation appended!")
+            st.rerun()
+
+    # 6. Operational Actions (Role-gated)
     if has_permission("manage_tasks"):
-        st.markdown("### Operational Actions")
+        st.markdown("### Operational Actions (Authorized)")
         act_col1, act_col2 = st.columns(2)
 
         with act_col1:
-            if report["status"] == "Pending":
+            if report["status"] in ["Pending", "Submitted"]:
                 if st.button("Dispatch Sanitation Strike Team", type="primary", use_container_width=True):
                     task_code = f"TASK-{report['report_uid'][-4:]}"
-                    user = get_current_user()
                     repo.create_task(
                         task_code=task_code,
                         report_id=report["id"],
@@ -169,10 +209,8 @@ def render(repo: Repository):
                     st.rerun()
 
         with act_col2:
-            if report["status"] == "Cleared" and has_permission("reopen_case"):
+            if report["status"] in ["Cleared", "Verified Closed"] and has_permission("reopen_case"):
                 if st.button("Reopen Incident (Incomplete Clearance)", use_container_width=True):
-                    user = get_current_user()
-                    repo.update_report_status(report["id"], "Reopened")
-                    repo.log_audit("STATUS_UPDATE", "Report", report["report_uid"], user["full_name"], user["id"], "Cleared", "Reopened")
+                    repo.transition_report_status(report["id"], "Reopened", user["id"], user["full_name"], "Reopened by officer for re-cleaning.")
                     st.warning("Incident reopened for field inspection.")
                     st.rerun()

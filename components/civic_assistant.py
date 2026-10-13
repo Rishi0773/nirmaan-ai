@@ -2,11 +2,43 @@
 NIRMAAN AI - Floating Civic Assistant Component
 Interactive civic guidance, rule-based decision support,
 and real SQLite report tracking with high-contrast readable styling.
+Renders native Markdown and LaTeX math blocks inside st.chat_message.
 """
 
+import re
 import streamlit as st
 from src.database.repository import Repository
 from services.assistant_service import process_assistant_query
+
+
+def render_assistant_content(content: str):
+    """
+    Renders assistant content splitting markdown text and standalone LaTeX equations.
+    Guarantees that equations are rendered via st.latex() and text via st.markdown().
+    Handles multiple equations, edge cases, and fallbacks cleanly.
+    """
+    if not content:
+        return
+
+    # Pattern to find $$...$$ blocks
+    equation_pattern = re.compile(r'(\$\$[\s\S]*?\$\$)', re.MULTILINE)
+    parts = equation_pattern.split(content)
+
+    for part in parts:
+        if not part:
+            continue
+        trimmed = part.strip()
+        if trimmed.startswith("$$") and trimmed.endswith("$$") and len(trimmed) >= 4:
+            # Extract raw formula without $$ delimiters
+            raw_formula = trimmed[2:-2].strip()
+            try:
+                st.latex(raw_formula)
+            except Exception:
+                # Fallback to readable formatted markdown if latex rendering fails
+                st.markdown(f"> **Formula:** `{raw_formula}`")
+        else:
+            # Surrounding explanation as native Streamlit Markdown
+            st.markdown(part)
 
 
 def render_civic_assistant(repo: Repository):
@@ -37,63 +69,7 @@ def render_civic_assistant(repo: Repository):
     with st.container(border=True):
         st.markdown(
             f"""<div id="civic-assistant-panel"></div>
-<style>
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) {{
-    background: rgba(255, 255, 255, 0.94) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.90) !important;
-    border-radius: 18px !important;
-    padding: 1.25rem 1.25rem 1.1rem 1.25rem !important;
-    box-shadow: 0 20px 45px rgba(5, 11, 26, 0.38) !important;
-    color: #0F172A !important;
-}}
-
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) p,
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) span,
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) label {{
-    color: #0F172A !important;
-}}
-
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) button {{
-    background: #FFFFFF !important;
-    border: 1px solid #CBD5E1 !important;
-    color: #1E293B !important;
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
-    padding: 0.35rem 0.65rem !important;
-    border-radius: 8px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
-    transition: all 0.2s ease !important;
-    min-height: 32px !important;
-    height: 32px !important;
-}}
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) button:hover {{
-    background: #F1F5F9 !important;
-    border-color: #94A3B8 !important;
-    color: #0F172A !important;
-}}
-
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) button[kind="primary"] {{
-    background: #0D9488 !important;
-    color: #FFFFFF !important;
-    border: none !important;
-    font-weight: 700 !important;
-}}
-
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) input {{
-    background: #FFFFFF !important;
-    color: #0F172A !important;
-    border: 1px solid #CBD5E1 !important;
-    border-radius: 8px !important;
-    font-size: 0.85rem !important;
-}}
-div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) input::placeholder {{
-    color: #94A3B8 !important;
-}}
-</style>
-
-<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 0.65rem; margin-bottom: 0.75rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #CBD5E1; padding-bottom: 0.65rem; margin-bottom: 0.75rem;">
     <div style="display: flex; align-items: center; gap: 0.6rem;">
         <div style="width: 10px; height: 10px; background-color: {status_dot}; border-radius: 50%; box-shadow: 0 0 8px {status_dot};"></div>
         <span style="font-weight: 800; font-size: 1.02rem; color: #0F172A; letter-spacing: -0.01em;">NIRMAAN Civic Assistant</span>
@@ -103,66 +79,47 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(#civic-assistant-panel) inpu
             unsafe_allow_html=True
         )
 
-        # Chat messages history (internal scrolling, high contrast)
+        # Chat messages history (rendered via native st.chat_message)
         chat_container = st.container()
         with chat_container:
             for idx, msg in enumerate(st.session_state["assistant_history"][-3:]):
                 if msg["sender"] == "user":
-                    st.markdown(
-                        f"""
-                        <div style="display: flex; justify-content: flex-end; margin-bottom: 0.55rem;">
-                            <div style="background: linear-gradient(135deg, #0D9488 0%, #059669 100%); color: #FFFFFF !important; padding: 0.5rem 0.85rem; border-radius: 10px; font-size: 0.83rem; font-weight: 500; max-width: 85%; box-shadow: 0 3px 10px rgba(5, 150, 105, 0.25);">
-                                {msg['text']}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                    with st.chat_message("user", avatar="👤"):
+                        st.markdown(msg["text"])
                 else:
-                    clean_msg = msg['text'].replace('\n', '<br/>')
-                    st.markdown(
-                        f"""
-                        <div style="display: flex; justify-content: flex-start; margin-bottom: 0.55rem;">
-                            <div style="background: #F1F5F9; border: 1px solid #CBD5E1; color: #0F172A !important; padding: 0.65rem 0.9rem; border-radius: 10px; font-size: 0.83rem; line-height: 1.5; max-width: 95%; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                                {clean_msg}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                    if msg.get("action"):
-                        act = msg["action"]
-                        lbl = msg.get("action_label", "Proceed")
-                        if st.button(lbl, key=f"asst_action_{idx}", use_container_width=True):
-                            if act == "navigate_report":
-                                st.session_state["nav_page"] = "Report Garbage"
-                            elif act == "navigate_map":
-                                st.session_state["nav_page"] = "Live Map"
-                            elif act == "navigate_dossier" or act == "view_dossier":
-                                st.session_state["nav_page"] = "Track Report"
-                                if msg.get("report_uid"):
-                                    st.session_state["selected_report_uid"] = msg["report_uid"]
-                            elif act == "navigate_queue":
-                                st.session_state["nav_page"] = "Analytics"
-                            elif act == "navigate_dashboard":
-                                st.session_state["nav_page"] = "Analytics"
-                            st.rerun()
+                    with st.chat_message("assistant", avatar="🤖"):
+                        render_assistant_content(msg["text"])
+                        if msg.get("action"):
+                            act = msg["action"]
+                            lbl = msg.get("action_label", "Proceed")
+                            if st.button(lbl, key=f"asst_action_{idx}", type="primary", use_container_width=True):
+                                if act == "navigate_report":
+                                    st.session_state["nav_page"] = "Report Garbage"
+                                elif act == "navigate_map":
+                                    st.session_state["nav_page"] = "Live Map"
+                                elif act in ["navigate_dossier", "view_dossier"]:
+                                    st.session_state["nav_page"] = "Track Report"
+                                    if msg.get("report_uid"):
+                                        st.session_state["selected_report_uid"] = msg["report_uid"]
+                                elif act in ["navigate_queue", "navigate_dashboard"]:
+                                    st.session_state["nav_page"] = "Analytics"
+                                st.rerun()
 
         # Suggested inquiries chips
         st.markdown(
-            "<div style='font-size: 0.72rem; color: #64748B; margin: 0.4rem 0 0.35rem 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;'>Suggested Questions:</div>",
+            "<div style='font-size: 0.72rem; color: #475569; margin: 0.4rem 0 0.35rem 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;'>Suggested Inquiries:</div>",
             unsafe_allow_html=True
         )
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("How do I report?", key="chip_report", use_container_width=True):
+            if st.button("How to Report?", key="chip_report", use_container_width=True):
                 _handle_user_prompt("How do I report a garbage hotspot?", repo)
-            if st.button("Track my report", key="chip_track", use_container_width=True):
+            if st.button("Track a Report", key="chip_track", use_container_width=True):
                 _handle_user_prompt("Track my report", repo)
         with c2:
-            if st.button("Show hotspot map", key="chip_map", use_container_width=True):
+            if st.button("Show Hotspot Map", key="chip_map", use_container_width=True):
                 _handle_user_prompt("Show hotspot map", repo)
-            if st.button("Priority formula?", key="chip_prio", use_container_width=True):
+            if st.button("Priority Formula", key="chip_prio", use_container_width=True):
                 _handle_user_prompt("How is cleanup priority calculated?", repo)
 
         # Message input & Send
@@ -200,4 +157,3 @@ def _handle_user_prompt(prompt: str, repo: Repository):
             "action": None
         })
     st.rerun()
-

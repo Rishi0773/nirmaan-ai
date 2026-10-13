@@ -1,0 +1,207 @@
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'assets/styles/custom.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/civic_assistant.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/hero.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/kpi_cards.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/navbar.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/shared_ui.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'services/assistant_service.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/auth/rbac.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/database/connection.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/database/repository.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/database/schema.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/components.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/styles.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/views/audit_logs.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/views/dashboard.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/views/incident_details.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/views/landing.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/views/map_view.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/views/report_incident.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/views/reports_export.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/ui/views/settings_view.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/utils/reporting.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/test_redesign.py', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/README.md b/README.md[m
+[1mindex 166fd40..01b6baa 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -4,7 +4,7 @@[m
+ [![Streamlit 1.56](https://img.shields.io/badge/Streamlit-1.56-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io/)[m
+ [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-00FFFF.svg)](https://github.com/ultralytics/ultralytics)[m
+ [![OpenCV](https://img.shields.io/badge/OpenCV-4.13-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/)[m
+[31m-[![Tests](https://img.shields.io/badge/Tests-21%20Passed%20(100%25)-10B981.svg)]()[m
+[32m+[m[32m[![Tests](https://img.shields.io/badge/Tests-27%20Passed%20(100%25)-10B981.svg)]()[m
+ [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)[m
+ [m
+ > **Intelligent Municipal Decision-Support Platform & Academic Defense Prototype**  [m
+[1mdiff --git a/app.py b/app.py[m
+[1mindex 106d942..ddebfa3 100644[m
+[1m--- a/app.py[m
+[1m+++ b/app.py[m
+[36m@@ -27,10 +27,15 @@[m [mfrom components.hero import render_hero[m
+ from components.kpi_cards import render_kpi_strip[m
+ from components.shared_ui import render_clean_table, severity_badge, status_badge[m
+ [m
+[31m-# Ensure DB exists[m
+[32m+[m[32mfrom src.database.connection import init_db, apply_migrations, get_connection[m
+[32m+[m
+[32m+[m[32m# Ensure DB exists and schema is up to date[m
+ if not DB_PATH.exists():[m
+     init_db()[m
+     seed_database()[m
+[32m+[m[32melse:[m
+[32m+[m[32m    with get_connection() as _mig_conn:[m
+[32m+[m[32m        apply_migrations(_mig_conn)[m
+ [m
+ repo = Repository()[m
+ [m
+[36m@@ -91,10 +96,10 @@[m [mif active_page == "Home":[m
+         for r in pending_high:[m
+             rank_str = f"#{r.get('priority_rank', '-')}" if r.get('priority_rank') else "-"[m
+             table_rows.append([[m
+[31m-                f"<strong>{rank_str}</strong>",[m
+[31m-                f"<span style='color:#2563EB; font-weight:600;'>{r['report_uid']}</span>",[m
+[31m-                f"<strong>{r['ward_name']}</strong><br/><span style='font-size:0.75rem; color:#64748B;'>{r['address'][:45]}</span>",[m
+[31m-                r['waste_category'].replace('_', ' ').title(),[m
+[32m+[m[32m                f"<strong style='color:#0F172A;'>{rank_str}</strong>",[m
+[32m+[m[32m                f"<span style='color:#1D4ED8; font-weight:700;'>{r['report_uid']}</span>",[m
+[32m+[m[32m                f"<strong style='color:#0F172A;'>{r['ward_name']}</strong><br/><span style='font-size:0.75rem; color:#475569;'>{r['address'][:45]}</span>",[m
+[32m+[m[32m                f"<span style='color:#0F172A; font-weight:500;'>{r['waste_category'].replace('_', ' ').title()}</span>",[m
+                 severity_badge(r.get('severity_level')),[m
+                 f"<span class='prio-pill'>{r.get('priority_score', 0):.1f}</span>",[m
+                 status_badge(r['status'])[m
+[36m@@ -138,60 +143,119 @@[m [melif active_page == "About":[m
+     from src.ui.views.landing import render[m
+     render()[m
+ elif active_page == "Login" or active_page == "Admin Console":[m
+[31m-    st.markdown("## Civic Operations & Role Management")[m
+[31m-    st.caption("Access authenticated municipal tools, switch simulated identity, and manage fieldwork operations.")[m
+[32m+[m[32m    st.markdown("## 🔐 Civic Operations & Role Management")[m
+[32m+[m[32m    st.caption("Demonstration Authentication Portal — Switch active personas to preview real role-based permissions and workflows.")[m
+[32m+[m
+[32m+[m[32m    st.markdown([m
+[32m+[m[32m        """[m
+[32m+[m[32m        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; color: #D97706; font-size: 0.85rem;">[m
+[32m+[m[32m            <strong>⚠️ Demonstration Mode Notice:</strong> This switcher simulates municipal authenticated sessions for evaluation and pilot demonstration. In a production deployment, this portal is replaced by single sign-on (SSO) or OAuth2 with multi-factor authentication. Backend authorization guards (RBAC) are actively enforced on all data mutations.[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        """,[m
+[32m+[m[32m        unsafe_allow_html=True[m
+[32m+[m[32m    )[m
+ [m
+     adm_col1, adm_col2 = st.columns([1.2, 2])[m
+     with adm_col1:[m
+         with st.container(border=True):[m
+[31m-            st.markdown(f"**Current Identity:** {current_user['full_name']}")[m
+[32m+[m[32m            st.markdown(f"### Current Active Persona")[m
+[32m+[m[32m            st.markdown(f"**Name:** {current_user['full_name']}")[m
+             st.markdown(f"**Role:** `{current_user['role']}`")[m
+[31m-            st.markdown(f"**Ward:** {current_user.get('ward_assigned', 'Central')}")[m
+[32m+[m[32m            st.markdown(f"**Ward Assigned:** {current_user.get('ward_assigned', 'Central')}")[m
+[32m+[m[32m            st.markdown(f"**Username:** `{current_user.get('username', 'N/A')}`")[m
+ [m
+             all_users = repo.get_users()[m
+[31m-            user_opts = [f"{u['full_name']} ({u['role']})" for u in all_users][m
+[32m+[m[32m            user_opts = [f"{u['full_name']} — {u['role']} ({u.get('ward_assigned', 'Central')})" for u in all_users][m
+             curr_idx = 0[m
+             for i, u in enumerate(all_users):[m
+                 if u["username"] == current_user["username"]:[m
+                     curr_idx = i[m
+                     break[m
+[31m-            chosen = st.selectbox("Switch Simulated Identity", user_opts, index=curr_idx)[m
+[31m-            if st.button("Confirm Role Switch", type="primary", use_container_width=True):[m
+[32m+[m[32m            chosen = st.selectbox("Switch Simulated Persona (Demo Only)", user_opts, index=curr_idx)[m
+[32m+[m[32m            if st.button("Confirm Persona Switch", type="primary", use_container_width=True):[m
+                 target = all_users[user_opts.index(chosen)][m
+                 set_current_user(target)[m
+[31m-                st.success(f"Switched identity to {target['full_name']} ({target['role']}).")[m
+[32m+[m[32m                st.success(f"Switched session to {target['full_name']} ({target['role']}).")[m
+[32m+[m[32m                st.rerun()[m
+[32m+[m
+[32m+[m[32m            st.markdown("---")[m
+[32m+[m[32m            if st.button("📊 Open Role-Specific Dashboard", use_container_width=True):[m
+[32m+[m[32m                st.session_state["nav_page"] = "Analytics"[m
+                 st.rerun()[m
+ [m
+     with adm_col2:[m
+         with st.container(border=True):[m
+[31m-            st.markdown("### Municipal Operations Console")[m
+[31m-            op_c1, op_c2 = st.columns(2)[m
+[31m-            with op_c1:[m
+[31m-                if st.button("Priority Queue", use_container_width=True):[m
+[31m-                    st.session_state["nav_page"] = "Priority Queue"[m
+[31m-                    st.rerun()[m
+[31m-                if st.button("Task Operations", use_container_width=True):[m
+[31m-                    st.session_state["nav_page"] = "Operations"[m
+[31m-                    st.rerun()[m
+[31m-                if st.button("Verification Review", use_container_width=True):[m
+[31m-                    st.session_state["nav_page"] = "Verification"[m
+[31m-                    st.rerun()[m
+[31m-                if st.button("Recurrence Analysis", use_container_width=True):[m
+[31m-                    st.session_state["nav_page"] = "Recurrence"[m
+[31m-                    st.rerun()[m
+[31m-            with op_c2:[m
+[31m-                if st.button("Evaluation (NIRMAAN vs FCFS)", use_container_width=True):[m
+[31m-                    st.session_state["nav_page"] = "Evaluation"[m
+[31m-                    st.rerun()[m
+[31m-                if st.button("Municipal PDF & CSV Exports", use_container_width=True):[m
+[31m-                    st.session_state["nav_page"] = "Exports"[m
+[31m-                    st.rerun()[m
+[31m-                if st.button("Immutable Civic Audit Trail", use_container_width=True):[m
+[31m-                    st.session_state["nav_page"] = "Audit Trail"[m
+[31m-                    st.rerun()[m
+[31m-                if st.button("Calibration & Settings", use_container_width=True):[m
+[31m-                    st.session_state["nav_page"] = "Settings"[m
+[31m-                    st.rerun()[m
+[32m+[m[32m            st.markdown(f"### Operational Tools for `{current_user['role']}`")[m
+[32m+[m[32m            role = current_user.get("role", "Citizen")[m
+[32m+[m
+[32m+[m[32m            if role == "Cleanup Worker":[m
+[32m+[m[32m                st.info("Field Operations Mode: You are assigned to ground cleanup tasks with before/after evidence logging.")[m
+[32m+[m[32m                w_c1, w_c2 = st.columns(2)[m
+[32m+[m[32m                with w_c1:[m
+[32m+[m[32m                    if st.button("My Assigned Field Tasks", type="primary", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Analytics"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m[32m                    if st.button("Live Hotspot Map", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Live Map"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m[32m                with w_c2:[m
+[32m+[m[32m                    if st.button("Track Incident Status", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Track Report"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m[32m                    if st.button("Report Additional Waste", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Report Garbage"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m
+[32m+[m[32m            elif role == "Citizen":[m
+[32m+[m[32m                st.info("Civic Portal Mode: You can submit geotagged waste reports and follow the transparent 7-stage cleanup lifecycle.")[m
+[32m+[m[32m                c_c1, c_c2 = st.columns(2)[m
+[32m+[m[32m                with c_c1:[m
+[32m+[m[32m                    if st.button("Submit New Garbage Report", type="primary", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Report Garbage"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m[32m                    if st.button("My Grievances & Progress", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Analytics"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m[32m                with c_c2:[m
+[32m+[m[32m                    if st.button("Track by Report ID", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Track Report"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m[32m                    if st.button("Explore Live City Map", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Live Map"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m
+[32m+[m[32m            else:[m
+[32m+[m[32m                # Ward Officer, Sanitation Supervisor, or Administrator[m
+[32m+[m[32m                op_c1, op_c2 = st.columns(2)[m
+[32m+[m[32m                with op_c1:[m
+[32m+[m[32m                    if st.button("Priority Queue", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Priority Queue"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m[32m                    if st.button("Task Operations", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Operations"[m
+[32m+[m[32m                        st.rerun()[m
+[32m+[m[32m                    if st.button("Verification Review", use_container_width=True):[m
+[32m+[m[32m                        st.session_state["nav_page"] = "Verification
